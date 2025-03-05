@@ -56,7 +56,9 @@ const Profile = () => {
           onPress={handlePickImage}
           style={styles.profilePicContainer}
         >
-          <Image source={{ uri: profilePicture }} style={styles.profilePic} />
+          {profilePicture && (
+            <Image source={{ uri: profilePicture }} style={styles.profilePic} />
+          )}
         </TouchableOpacity>
         <Text style={styles.username}>{username}</Text>
         <Text style={styles.role}>@{role}</Text>

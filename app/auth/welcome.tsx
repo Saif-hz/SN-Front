@@ -43,7 +43,6 @@ const _layout = () => {
             borderWidth: 1,
             borderRadius: wp("50%"),
             paddingVertical: hp("2.25%"),
-            opacity: 0.7,
           }}
         >
           <Text
@@ -60,13 +59,12 @@ const _layout = () => {
         <Pressable
           onPress={() => router.push("/auth/signup")}
           style={{
-            backgroundColor: "#A971B3",
+            backgroundColor: "#817AD0",
             width: wp("80%"),
             borderColor: "white",
             borderWidth: 1,
             borderRadius: wp("50%"),
             paddingVertical: hp("2.25%"),
-            opacity: 0.7,
           }}
         >
           <Text

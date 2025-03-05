@@ -21,14 +21,14 @@ const Index = () => {
     >
       {/* <Wall /> */}
       <ImageBackground
-        source={require("../assets/images/wall10.png")}
+        source={require("../assets/images/sss 3.png")}
         style={{
           backgroundColor: "white",
           // height: hp("35%"),
           width: wp("100%"),
           borderTopRightRadius: wp("10%"),
           borderTopLeftRadius: wp("10%"),
-          paddingTop: wp("7%"),
+          paddingTop: wp("10%"),
           overflow: "hidden",
         }}
       >
@@ -36,7 +36,7 @@ const Index = () => {
           <Text
             style={{
               color: "white",
-              fontSize: hp("5%"),
+              fontSize: hp("6%"),
               fontFamily: "hubbali",
               fontWeight: "600",
               paddingHorizontal: wp("15%"),
@@ -48,7 +48,7 @@ const Index = () => {
             style={{
               color: "white",
               fontSize: hp("2%"),
-              fontFamily: "hubbali",
+              fontFamily: "poppinsSemiBold",
               textAlign: "left",
               paddingStart: wp("10%"),
               paddingTop: wp("22%"),
