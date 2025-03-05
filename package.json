@@ -46,7 +46,8 @@
     "react-native-webview": "13.12.5",
     "react-redux": "^9.2.0",
     "rn-swipe-button": "^3.0.1",
-    "expo-linear-gradient": "~14.0.2"
+    "expo-linear-gradient": "~14.0.2",
+    "react-native-svg": "15.8.0"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",

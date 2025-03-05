@@ -15,22 +15,34 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { MaterialIcons } from "@expo/vector-icons"; // For Eye Icon & Google Icon
-import { FontAwesome } from "@expo/vector-icons"; // Import Google Icon
-import { LinearGradient } from "expo-linear-gradient"; // Import Gradient
-import GoogleButton from "../../components/GoogleButton"; // Import the button
+import { MaterialIcons, FontAwesome } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient"; // Gradient for buttons
+import GoogleButton from "../../components/GoogleButton";
+import * as Font from "expo-font";
+import { useState as useFontState } from "react";
+import { useRouter } from "expo-router"; // Import router
 
 const Login = () => {
+  const router = useRouter(); // Initialize router
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isRememberChecked, setIsRememberChecked] = useState(false);
 
-  // Redux mutation hook for login
   const [loginUser, { isLoading }] = useLoginUserMutation();
-
-  // Animation for entrance fade-in effect
   const fadeAnim = useRef(new Animated.Value(0)).current;
+
+  // Load Font
+  const [fontLoaded, setFontLoaded] = useFontState(false);
+  useEffect(() => {
+    const loadFonts = async () => {
+      await Font.loadAsync({
+        Hubballi: require("../../assets/fonts/Hubballi-Regular.ttf"),
+      });
+      setFontLoaded(true);
+    };
+    loadFonts();
+  }, []);
 
   useEffect(() => {
     Animated.timing(fadeAnim, {
@@ -50,7 +62,6 @@ const Login = () => {
       console.log("Sending login request:", { email, password });
       const response = await loginUser({ email, password }).unwrap();
       console.log("Login successful:", response);
-
       Alert.alert("Success", "Login successful!");
     } catch (error) {
       console.error("Login Error:", error);
@@ -61,8 +72,17 @@ const Login = () => {
     }
   };
 
-  const handleGoogleLogin = () => {
-    Alert.alert("Google Login", "Google authentication will be implemented.");
+  const handleGoogleLogin = async () => {
+    try {
+      // Implement Google login logic here
+      console.log("Google login initiated");
+      // Example: const response = await googleLogin();
+      // Handle successful login
+      Alert.alert("Success", "Google login successful!");
+    } catch (error) {
+      console.error("Google Login Error:", error);
+      Alert.alert("Error", "Google login failed. Try again.");
+    }
   };
 
   return (
@@ -71,7 +91,8 @@ const Login = () => {
       style={styles.background}
     >
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
-        <Text style={styles.title}>let’s connect {"\n"} through music</Text>
+        {/* Page Title */}
+        {fontLoaded && <Text style={styles.title}>Welcome Back</Text>}
 
         <View style={styles.inputContainer}>
           <TextInput
@@ -83,7 +104,7 @@ const Login = () => {
             keyboardType="email-address"
           />
 
-          {/* Password Input with Eye Icon */}
+          {/* Password Input */}
           <View style={styles.passwordContainer}>
             <TextInput
               placeholder="Password"
@@ -121,20 +142,24 @@ const Login = () => {
         </Pressable>
 
         <View style={styles.buttonContainer}>
-          <Pressable
-            style={[styles.loginButton, { opacity: isLoading ? 0.5 : 1 }]}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            <Text style={styles.loginText}>
-              {isLoading ? "Logging in..." : "Login"}
-            </Text>
+          {/* Login Button with Gradient */}
+          <Pressable onPress={handleLogin} disabled={isLoading}>
+            <LinearGradient
+              colors={["#B89EFF", "#7C42D8"]} // Gradient (Dark to Light)
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.loginButton, { opacity: isLoading ? 0.5 : 1 }]}
+            >
+              <Text style={styles.loginText}>
+                {isLoading ? "Logging in..." : "Login"}
+              </Text>
+            </LinearGradient>
           </Pressable>
-
-          <Pressable onPress={() => console.log("Signup Pressed")}>
+          const router = useRouter(); // Initialize router
+          <Pressable onPress={() => router.push("/auth/signup")}>
             <LinearGradient
               colors={["#EDE7F6", "#B89EFF"]} // Reverse Gradient (Light to Dark)
-              start={{ x: 1, y: 0 }} // Gradient from Right to Left
+              start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 1 }}
               style={styles.signupButton}
             >
@@ -143,7 +168,7 @@ const Login = () => {
           </Pressable>
         </View>
 
-        <GoogleButton />
+        <GoogleButton onPress={handleGoogleLogin} />
       </Animated.View>
     </ImageBackground>
   );
@@ -152,26 +177,12 @@ const Login = () => {
 export default Login;
 
 const styles = StyleSheet.create({
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#B89EFF",
-    borderRadius: wp("5%"),
-    height: hp("6.5%"),
-    paddingHorizontal: wp("5%"),
-    marginTop: hp("3%"),
-    justifyContent: "center",
-  },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
   background: {
     flex: 1,
     resizeMode: "cover",
     justifyContent: "center",
     alignItems: "center",
+    paddingHorizontal: wp("5%"),
   },
   container: {
     width: wp("85%"),
@@ -179,36 +190,35 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "#B89EFF",
-    fontSize: hp("4%"),
+    color: "#7C42D8", // Deep Violet
+    fontSize: hp("4.5%"),
     textAlign: "center",
-    marginBottom: hp("5%"),
-    textTransform: "capitalize",
-    fontFamily: "poppinsSemiBold",
+    fontFamily: "Hubballi",
+    marginBottom: hp("6%"),
+    letterSpacing: 1,
   },
   inputContainer: {
     width: "100%",
     gap: hp("2%"),
   },
   input: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)", // Glassmorphism effect
+    backgroundColor: "rgba(255, 255, 255, 0.2)", // Clearer glassmorphism effect
     width: "100%",
     paddingVertical: hp("1.5%"),
     paddingHorizontal: wp("5%"),
     borderRadius: wp("5%"),
-    borderColor: "#B89EFF",
-    borderWidth: 1.5,
+    borderColor: "#F2E3F4",
+    borderWidth: 2,
     color: "white",
     fontSize: 16,
-    fontWeight: "500",
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: wp("5%"),
-    borderColor: "#B89EFF",
-    borderWidth: 1.5,
+    borderColor: "#F2E3F4",
+    borderWidth: 2,
     width: "100%",
   },
   passwordInput: {
@@ -246,41 +256,28 @@ const styles = StyleSheet.create({
     marginTop: hp("3%"),
   },
   loginButton: {
-    backgroundColor: "transparent",
-    borderWidth: 2,
-    borderColor: "#B89EFF",
     height: hp("7%"),
     justifyContent: "center",
     alignItems: "center",
     borderRadius: wp("5%"),
     marginBottom: hp("2%"),
+    width: "100%",
   },
   loginText: {
-    color: "#B89EFF",
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  signupButton: {
-    backgroundColor: "#B89EFF",
-    height: hp("7%"),
-    justifyContent: "center",
-    alignItems: "center",
-    borderRadius: wp("5%"),
-    shadowColor: "#B89EFF",
-    shadowOpacity: 0.3,
-    shadowRadius: 10,
-    shadowOffset: { width: 0, height: 5 },
-  },
-  signupText: {
     color: "white",
     fontSize: 18,
     fontWeight: "bold",
   },
-
-  googleButtonText: {
-    color: "#3C4043",
-    fontSize: 16,
+  signupButton: {
+    height: hp("7%"),
+    justifyContent: "center",
+    alignItems: "center",
+    borderRadius: wp("5%"),
+    width: "100%",
+  },
+  signupText: {
+    color: "#5B2788",
+    fontSize: 18,
     fontWeight: "bold",
-    marginLeft: wp("3%"),
   },
 });

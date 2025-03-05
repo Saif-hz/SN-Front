@@ -1,63 +1,48 @@
 import React from "react";
-import { Text, TouchableOpacity, StyleSheet, Alert } from "react-native";
-import { AntDesign } from "@expo/vector-icons"; // Google Icon
-import { LinearGradient } from "expo-linear-gradient"; // Gradient
+import { Text, TouchableOpacity, StyleSheet, Image } from "react-native";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
-const handleGoogleLogin = () => {
-  Alert.alert("Google Login", "Google authentication will be implemented.");
-};
-
-const GoogleButton = () => {
+const GoogleButton = ({ onPress }: { onPress: () => void }) => {
   return (
-    <TouchableOpacity
-      onPress={handleGoogleLogin}
-      style={styles.buttonContainer}
-    >
-      <LinearGradient
-        colors={["#B89EFF", "#EDE7F6"]} // Gradient from purple to light purple/white
-        start={{ x: 0, y: 0 }}
-        end={{ x: 1, y: 1 }}
-        style={styles.googleButton}
-      >
-        <AntDesign
-          name="google"
-          size={24}
-          color="#e71f33"
-          style={styles.icon}
-        />
-        <Text style={styles.buttonText}>Continue with Google</Text>
-      </LinearGradient>
+    <TouchableOpacity style={styles.googleButton} onPress={onPress}>
+      <Image
+        source={require("../assets/images/google.png")} // ✅ Use your local SVG file
+        style={styles.googleIcon}
+      />
+      <Text style={styles.googleButtonText}>Sign in with Google</Text>
     </TouchableOpacity>
   );
 };
 
+export default GoogleButton;
+
 const styles = StyleSheet.create({
-  buttonContainer: {
-    width: "80%",
-    alignSelf: "center",
-  },
   googleButton: {
     flexDirection: "row",
     alignItems: "center",
+    backgroundColor: "white",
     borderRadius: wp("5%"),
     height: hp("6.5%"),
     paddingHorizontal: wp("5%"),
     marginTop: hp("3%"),
     justifyContent: "center",
-    width: "100%",
+    shadowColor: "#000",
+    shadowOpacity: 0.2,
+    shadowRadius: 5,
+    shadowOffset: { width: 0, height: 3 },
   },
-  icon: {
-    marginRight: wp("2%"),
+  googleIcon: {
+    width: 24, // Adjust based on your image
+    height: 24,
+    resizeMode: "contain",
   },
-  buttonText: {
-    color: "white",
-    fontSize: 18,
+  googleButtonText: {
+    color: "#3C4043",
+    fontSize: 16,
     fontWeight: "bold",
+    marginLeft: wp("3%"),
   },
 });
-
-export default GoogleButton;
