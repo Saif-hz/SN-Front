@@ -17,6 +17,8 @@ import {
 } from "react-native-responsive-screen";
 import { MaterialIcons } from "@expo/vector-icons"; // For Eye Icon & Google Icon
 import { FontAwesome } from "@expo/vector-icons"; // Import Google Icon
+import { LinearGradient } from "expo-linear-gradient"; // Import Gradient
+import GoogleButton from "../../components/GoogleButton"; // Import the button
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -65,7 +67,7 @@ const Login = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/welcomeBG.jpg")}
+      source={require("../../assets/images/login screen.png")}
       style={styles.background}
     >
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -129,19 +131,19 @@ const Login = () => {
             </Text>
           </Pressable>
 
-          <Pressable style={styles.signupButton}>
-            <Text style={styles.signupText}>Signup</Text>
+          <Pressable onPress={() => console.log("Signup Pressed")}>
+            <LinearGradient
+              colors={["#EDE7F6", "#B89EFF"]} // Reverse Gradient (Light to Dark)
+              start={{ x: 1, y: 0 }} // Gradient from Right to Left
+              end={{ x: 0, y: 1 }}
+              style={styles.signupButton}
+            >
+              <Text style={styles.signupText}>Signup</Text>
+            </LinearGradient>
           </Pressable>
         </View>
 
-        {/* Google Login Button */}
-        <TouchableOpacity
-          style={styles.googleButton}
-          onPress={handleGoogleLogin}
-        >
-          <FontAwesome name="google" size={24} color="#DB4437" />
-          <Text style={styles.googleButtonText}>Continue with Google</Text>
-        </TouchableOpacity>
+        <GoogleButton />
       </Animated.View>
     </ImageBackground>
   );
@@ -150,6 +152,21 @@ const Login = () => {
 export default Login;
 
 const styles = StyleSheet.create({
+  googleButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#B89EFF",
+    borderRadius: wp("5%"),
+    height: hp("6.5%"),
+    paddingHorizontal: wp("5%"),
+    marginTop: hp("3%"),
+    justifyContent: "center",
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 18,
+    fontWeight: "bold",
+  },
   background: {
     flex: 1,
     resizeMode: "cover",
@@ -162,12 +179,12 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "white",
+    color: "#B89EFF",
     fontSize: hp("4%"),
-    fontWeight: "bold",
     textAlign: "center",
     marginBottom: hp("5%"),
     textTransform: "capitalize",
+    fontFamily: "poppinsSemiBold",
   },
   inputContainer: {
     width: "100%",
@@ -214,14 +231,14 @@ const styles = StyleSheet.create({
     width: wp("4%"),
     height: wp("4%"),
     borderWidth: 2,
-    borderColor: "white",
+    borderColor: "#B89EFF",
     marginRight: wp("2%"),
   },
   checkboxChecked: {
     backgroundColor: "#B89EFF",
   },
   rememberMeText: {
-    color: "white",
+    color: "#B89EFF",
     fontSize: 16,
   },
   buttonContainer: {
@@ -259,16 +276,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
   },
-  googleButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "white",
-    borderRadius: wp("5%"),
-    height: hp("6.5%"),
-    paddingHorizontal: wp("5%"),
-    marginTop: hp("3%"),
-    justifyContent: "center",
-  },
+
   googleButtonText: {
     color: "#3C4043",
     fontSize: 16,

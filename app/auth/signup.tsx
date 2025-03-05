@@ -100,7 +100,7 @@ const Signup = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/welcomeBG.jpg")}
+      source={require("../../assets/images/login screen.png")}
       style={styles.background}
     >
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -239,11 +239,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "#D1C4E9", // Light lavender instead of white
-    fontSize: hp("5%"),
+    color: "#B89EFF", // Light lavender instead of white
+    fontSize: hp("4%"),
     textAlign: "center",
-    fontFamily: "Hubballi",
-    marginBottom: hp("4%"),
+    fontFamily: "poppins",
+    marginBottom: hp("6%"),
   },
   inputContainer: {
     width: "100%",
@@ -287,6 +287,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderRadius: wp("5%"),
     marginTop: hp("5%"),
+    borderColor: "#FFFFFF",
   },
   signupText: {
     color: "white",
@@ -305,16 +306,17 @@ const styles = StyleSheet.create({
     paddingVertical: hp("1.5%"),
     borderRadius: wp("5%"),
     borderWidth: 1.5,
-    borderColor: "#B89EFF",
+    borderColor: "#FFFFFF",
     marginHorizontal: wp("1%"),
   },
   selectedUserType: {
     backgroundColor: "#7E57C2",
   },
   userTypeText: {
-    color: "#D1C4E9",
+    color: "#B89EFF",
     fontSize: 16,
     fontWeight: "bold",
+    borderColor: "#B89EFF",
   },
   googleButton: {
     flexDirection: "row",
