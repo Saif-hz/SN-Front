@@ -16,7 +16,7 @@ const _layout = () => {
   const router = useRouter();
   return (
     <ImageBackground
-      source={require("../../assets/images/auth.jpg")}
+      source={require("../../assets/images/bgbg.png")}
       style={{
         height: hp("100%"),
         width: wp("100%"),
@@ -24,18 +24,6 @@ const _layout = () => {
         alignItems: "flex-start",
       }}
     >
-      <Text
-        style={{
-          color: "#d0bed6",
-          fontSize: hp("4%"),
-          fontFamily: "poppinsSemiBold",
-          fontWeight: "500",
-          paddingTop: hp("38%"),
-          paddingStart: wp("5"),
-        }}
-      >
-        let's connect{"\n"}through music
-      </Text>
       <View
         style={{
           alignItems: "center",
@@ -49,19 +37,21 @@ const _layout = () => {
         <Pressable
           onPress={() => router.push("/auth/login")}
           style={{
-            backgroundColor: "#3E3E3E",
+            backgroundColor: "#384454",
             width: wp("80%"),
             borderColor: "white",
             borderWidth: 1,
             borderRadius: wp("50%"),
             paddingVertical: hp("2.25%"),
+            opacity: 0.7,
           }}
         >
           <Text
             style={{
-              color: "white",
+              color: "#FFFFFF",
               textAlign: "center",
               fontFamily: "poppinsSemiBold",
+              opacity: 1,
             }}
           >
             Login
@@ -70,12 +60,13 @@ const _layout = () => {
         <Pressable
           onPress={() => router.push("/auth/signup")}
           style={{
-            backgroundColor: "#7C42D8",
+            backgroundColor: "#A971B3",
             width: wp("80%"),
             borderColor: "white",
             borderWidth: 1,
             borderRadius: wp("50%"),
             paddingVertical: hp("2.25%"),
+            opacity: 0.7,
           }}
         >
           <Text

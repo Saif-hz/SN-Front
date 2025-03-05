@@ -27,6 +27,7 @@ const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const userType = "defaultUserType"; // Define userType with a default value
   const [isRememberChecked, setIsRememberChecked] = useState(false);
 
   const [loginUser, { isLoading }] = useLoginUserMutation();
@@ -63,6 +64,10 @@ const Login = () => {
       const response = await loginUser({ email, password }).unwrap();
       console.log("Login successful:", response);
       Alert.alert("Success", "Login successful!");
+      router.replace({
+        pathname: "/auth/profile",
+        params: { email: email, userType: userType },
+      });
     } catch (error) {
       console.error("Login Error:", error);
       Alert.alert(
@@ -145,7 +150,7 @@ const Login = () => {
           {/* Login Button with Gradient */}
           <Pressable onPress={handleLogin} disabled={isLoading}>
             <LinearGradient
-              colors={["#B89EFF", "#7C42D8"]} // Gradient (Dark to Light)
+              colors={["#B89EFF", "#A971B3"]} // Gradient (Dark to Light)
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={[styles.loginButton, { opacity: isLoading ? 0.5 : 1 }]}
@@ -155,10 +160,9 @@ const Login = () => {
               </Text>
             </LinearGradient>
           </Pressable>
-          const router = useRouter(); // Initialize router
           <Pressable onPress={() => router.push("/auth/signup")}>
             <LinearGradient
-              colors={["#EDE7F6", "#B89EFF"]} // Reverse Gradient (Light to Dark)
+              colors={["#EDE7F6", "#A971B3"]} // Reverse Gradient (Light to Dark)
               start={{ x: 1, y: 0 }}
               end={{ x: 0, y: 1 }}
               style={styles.signupButton}
@@ -240,14 +244,14 @@ const styles = StyleSheet.create({
     width: wp("4%"),
     height: wp("4%"),
     borderWidth: 2,
-    borderColor: "#B89EFF",
+    borderColor: "#A971B3",
     marginRight: wp("2%"),
   },
   checkboxChecked: {
-    backgroundColor: "#B89EFF",
+    backgroundColor: "#A971B3",
   },
   rememberMeText: {
-    color: "#B89EFF",
+    color: "#A971B3",
     fontSize: 16,
   },
   buttonContainer: {

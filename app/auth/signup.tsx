@@ -17,6 +17,7 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons"; // Icons for Google & Eye Toggle
+import GoogleButton from "../../components/GoogleButton"; // Import GoogleButton component
 import * as Font from "expo-font"; // Load custom font
 import { useState as useFontState } from "react";
 
@@ -82,7 +83,12 @@ const Signup = () => {
           userType.charAt(0).toUpperCase() + userType.slice(1)
         } account created successfully!`
       );
-      router.replace("/auth/login");
+
+      // ✅ Navigate to Profile Setup Page correctly
+      router.replace({
+        pathname: "/auth/profile",
+        params: { email: email, userType: userType },
+      });
     } catch (error: any) {
       console.error("Signup Error:", error);
       const errorMessage =
@@ -212,13 +218,7 @@ const Signup = () => {
         </Pressable>
 
         {/* Google Signup Button */}
-        <TouchableOpacity
-          style={styles.googleButton}
-          onPress={handleGoogleSignup}
-        >
-          <FontAwesome name="google" size={24} color="#DB4437" />
-          <Text style={styles.googleButtonText}>Sign Up with Google</Text>
-        </TouchableOpacity>
+        <GoogleButton onPress={handleGoogleSignup} />
       </Animated.View>
     </ImageBackground>
   );
@@ -280,7 +280,7 @@ const styles = StyleSheet.create({
     paddingRight: wp("5%"),
   },
   signupButton: {
-    backgroundColor: "#B89EFF",
+    backgroundColor: "#A971B3",
     height: hp("6%"), // Bigger button
     width: wp("48%"),
     justifyContent: "center",

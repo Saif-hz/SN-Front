@@ -21,7 +21,7 @@ const Index = () => {
     >
       {/* <Wall /> */}
       <ImageBackground
-        source={require("../assets/images/wall4.jpg")}
+        source={require("../assets/images/wall10.png")}
         style={{
           backgroundColor: "white",
           // height: hp("35%"),
