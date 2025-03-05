@@ -100,7 +100,7 @@ const Signup = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/login screen.png")}
+      source={require("../../assets/images/darkmodebg.png")}
       style={styles.background}
     >
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
@@ -239,10 +239,10 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "#B89EFF", // Light lavender instead of white
+    color: "#ffe3ff", // Light lavender instead of white
     fontSize: hp("4%"),
     textAlign: "center",
-    fontFamily: "poppins",
+    fontFamily: "poppinsSemiBold",
     marginBottom: hp("6%"),
   },
   inputContainer: {
@@ -250,23 +250,23 @@ const styles = StyleSheet.create({
     gap: hp("2%"),
   },
   input: {
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)", // Clearer glassmorphism effect
     width: "100%",
     paddingVertical: hp("1.5%"),
     paddingHorizontal: wp("5%"),
     borderRadius: wp("5%"),
-    borderColor: "#B89EFF",
-    borderWidth: 1.5,
+    borderColor: "#F2E3F4",
+    borderWidth: 2,
     color: "white",
     fontSize: 16,
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.1)",
+    backgroundColor: "rgba(255, 255, 255, 0.2)",
     borderRadius: wp("5%"),
-    borderColor: "#B89EFF",
-    borderWidth: 1.5,
+    borderColor: "#F2E3F4",
+    borderWidth: 2,
     width: "100%",
   },
   passwordInput: {
@@ -313,7 +313,7 @@ const styles = StyleSheet.create({
     backgroundColor: "#7E57C2",
   },
   userTypeText: {
-    color: "#B89EFF",
+    color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "bold",
     borderColor: "#B89EFF",

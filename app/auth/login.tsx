@@ -87,8 +87,8 @@ const Login = () => {
 
   return (
     <ImageBackground
-      source={require("../../assets/images/login screen.png")}
       style={styles.background}
+      source={require("../../assets/images/darkmodebg.png")}
     >
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         {/* Page Title */}
@@ -190,12 +190,11 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   title: {
-    color: "#7C42D8", // Deep Violet
-    fontSize: hp("4.5%"),
+    color: "#ffe3ff", // Light lavender instead of white
+    fontSize: hp("4%"),
     textAlign: "center",
-    fontFamily: "Hubballi",
-    marginBottom: hp("6%"),
-    letterSpacing: 1,
+    fontFamily: "poppinsSemiBold",
+    marginBottom: hp("10%"),
   },
   inputContainer: {
     width: "100%",
