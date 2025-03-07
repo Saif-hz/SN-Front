@@ -21,7 +21,7 @@ const Index = () => {
     >
       {/* <Wall /> */}
       <ImageBackground
-        source={require("../assets/images/sss 3.png")}
+        source={require("../assets/images/sss 583.png")}
         style={{
           backgroundColor: "white",
           // height: hp("35%"),
@@ -80,7 +80,7 @@ const Index = () => {
                 color: "#FFFFFF",
                 fontSize: hp("2%"),
                 // fontWeight: "bold",
-                fontFamily: "poppins",
+                fontFamily: "poppinsSemiBold",
               }}
             />
           </View>
