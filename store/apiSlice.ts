@@ -1,17 +1,30 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { RootState } from "./store"; // ✅ Import RootState
 
 export const apiSlice = createApi({
   reducerPath: "api",
+
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://192.168.148.66:8000/api/auth/", // ✅ Your backend API base URL
+    baseUrl: "http://192.168.90.66:8000/api/auth/",
+    prepareHeaders: (headers, { getState }) => {
+      const state = getState() as RootState; // ✅ Explicitly define the type
+      const token = state.auth?.accessToken; // ✅ Now TypeScript understands `auth`
+
+      if (token) {
+        headers.set("Authorization", `Bearer ${token}`);
+      }
+      headers.set("Content-Type", "application/json");
+      return headers;
+    },
   }),
+  tagTypes: ["UserProfile"], // ✅ Define "UserProfile" tag here
+
   endpoints: (builder) => ({
     signupUser: builder.mutation({
       query: (userData) => ({
         url: "signup/",
         method: "POST",
         body: userData,
-        headers: { "Content-Type": "application/json" },
       }),
     }),
     loginUser: builder.mutation({
@@ -19,23 +32,29 @@ export const apiSlice = createApi({
         url: "login/",
         method: "POST",
         body: credentials,
-        headers: { "Content-Type": "application/json" },
       }),
     }),
+    getUserProfile: builder.query({
+      query: (username) => ({
+        url: `profile/${username}/`, // ✅ Use username instead of email
+        method: "GET",
+      }),
+    }),
+
     updateProfile: builder.mutation({
       query: (profileData) => ({
         url: "profile/update/",
         method: "PUT",
         body: profileData,
-        headers: { "Content-Type": "application/json" },
       }),
+      invalidatesTags: ["UserProfile"], // ✅ Ensures profile refresh
     }),
   }),
 });
 
-// ✅ Make sure to export `useUpdateProfileMutation`
 export const {
   useSignupUserMutation,
   useLoginUserMutation,
   useUpdateProfileMutation,
+  useGetUserProfileQuery,
 } = apiSlice;

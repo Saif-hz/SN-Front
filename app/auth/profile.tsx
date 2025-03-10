@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useCallback, useState } from "react";
 import {
   View,
   Text,
@@ -6,92 +6,119 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  ActivityIndicator,
+  RefreshControl,
+  FlatList,
 } from "react-native";
 import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import * as ImagePicker from "expo-image-picker";
+import { useLocalSearchParams } from "expo-router";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
+import { useGetUserProfileQuery } from "../../store/apiSlice";
 
 const Profile = () => {
-  const [profilePicture, setProfilePicture] = useState<string | null>(
-    "https://via.placeholder.com/150"
-  );
-  const [username, setUsername] = useState("Saif hz");
-  const [role, setRole] = useState("Producer");
-  const [following, setFollowing] = useState(125);
-  const [followers, setFollowers] = useState("3k");
-  const [posts, setPosts] = useState(100);
+  const { email } = useLocalSearchParams(); // Retrieve user email
+  const [refreshing, setRefreshing] = useState(false);
 
-  // Handle Image Upload
-  const handlePickImage = async () => {
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 1,
-    });
+  // Fetch user data
+  const {
+    data: user,
+    error,
+    isLoading,
+    refetch,
+  } = useGetUserProfileQuery(email || "default@example.com");
 
-    if (!result.canceled) {
-      setProfilePicture(result.assets[0].uri);
-    }
-  };
+  // Handle Refresh
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await refetch();
+    setRefreshing(false);
+  }, [refetch]);
+
+  // Loading State
+  if (isLoading) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#817AD0" />
+        <Text>Loading profile...</Text>
+      </View>
+    );
+  }
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      {/* Header */}
-      <View style={styles.headerContainer}>
-        <TouchableOpacity>
-          <FontAwesome name="angle-left" size={28} color="#6A0DAD" />
-        </TouchableOpacity>
-        <TouchableOpacity>
-          <MaterialIcons name="settings" size={28} color="#6A0DAD" />
-        </TouchableOpacity>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      refreshControl={
+        <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+      }
+    >
+      {/* Cover Photo */}
+      <View style={styles.coverContainer}>
+        <Image
+          source={{
+            uri: user?.coverPhoto || "./../../assets/images/flouu.jpg",
+          }}
+          style={styles.coverPhoto}
+        />
       </View>
 
       {/* Profile Section */}
       <View style={styles.profileSection}>
-        <TouchableOpacity
-          onPress={handlePickImage}
-          style={styles.profilePicContainer}
-        >
-          {profilePicture && (
-            <Image source={{ uri: profilePicture }} style={styles.profilePic} />
+        <Image
+          source={{
+            uri: user?.profile_picture || "https://via.placeholder.com/150",
+          }}
+          style={styles.profilePic}
+        />
+        <Text style={styles.username}>
+          {user?.nom} {user?.prenom}
+        </Text>
+        <Text style={styles.role}>{user?.bio || "Music Enthusiast"}</Text>
+        <View style={styles.locationContainer}>
+          <FontAwesome name="map-marker" size={16} color="#817AD0" />
+          <Text style={styles.location}>{user?.location || "Unknown"}</Text>
+        </View>
+        <View style={styles.statsContainer}>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{user?.followers || 0}</Text>
+            <Text style={styles.statLabel}>Followers</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{user?.following || 0}</Text>
+            <Text style={styles.statLabel}>Following</Text>
+          </View>
+          <View style={styles.statItem}>
+            <Text style={styles.statNumber}>{user?.likes || 0}K</Text>
+            <Text style={styles.statLabel}>Likes</Text>
+          </View>
+        </View>
+        <View style={styles.buttonRow}>
+          <TouchableOpacity style={styles.editButton}>
+            <Text style={styles.editButtonText}>Edit Profile</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.addFriendButton}>
+            <Text style={styles.addFriendText}>Add Friend</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Posts Section */}
+      <View style={styles.postsContainer}>
+        <Text style={styles.sectionTitle}>Posts</Text>
+        <FlatList
+          data={user?.posts || []}
+          keyExtractor={(item) => item.id.toString()}
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          renderItem={({ item }) => (
+            <View style={styles.postItem}>
+              <Image source={{ uri: item.image }} style={styles.postImage} />
+            </View>
           )}
-        </TouchableOpacity>
-        <Text style={styles.username}>{username}</Text>
-        <Text style={styles.role}>@{role}</Text>
-        <TouchableOpacity style={styles.editButton}>
-          <Text style={styles.editButtonText}>Edit</Text>
-        </TouchableOpacity>
+        />
       </View>
-
-      {/* Follow Stats */}
-      <View style={styles.statsContainer}>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{following}</Text>
-          <Text style={styles.statLabel}>Following</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{followers.toLocaleString()}</Text>
-          <Text style={styles.statLabel}>Followers</Text>
-        </View>
-        <View style={styles.statItem}>
-          <Text style={styles.statNumber}>{posts}</Text>
-          <Text style={styles.statLabel}>Posts</Text>
-        </View>
-      </View>
-
-      {/* Story Highlights */}
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={styles.highlightsContainer}
-      ></ScrollView>
-
-      {/* Gallery Grid */}
-      <View style={styles.galleryContainer}></View>
     </ScrollView>
   );
 };
@@ -101,53 +128,56 @@ export default Profile;
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    padding: wp("5%"),
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#FFFFFF",
   },
-  headerContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: hp("3%"),
+  loadingContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  coverContainer: {
+    width: "100%",
+    height: hp("25%"),
+  },
+  coverPhoto: {
+    width: "100%",
+    height: "100%",
   },
   profileSection: {
     alignItems: "center",
-  },
-  profilePicContainer: {
-    borderWidth: 3,
-    borderColor: "#6A0DAD",
-    borderRadius: 60,
-    padding: 5,
+    marginTop: -hp("7%"), // Moves profile picture up
   },
   profilePic: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 140,
+    height: 140,
+    borderRadius: 80,
+    borderWidth: 3,
+    borderColor: "#817AD0",
   },
   username: {
     fontSize: 22,
     fontWeight: "bold",
     color: "#333",
-    marginTop: hp("1%"),
+    marginTop: 10,
   },
   role: {
     fontSize: 16,
     color: "gray",
   },
-  editButton: {
-    backgroundColor: "#6A0DAD",
-    paddingVertical: 8,
-    paddingHorizontal: 20,
-    borderRadius: 20,
-    marginTop: hp("1.5%"),
+  locationContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 5,
   },
-  editButtonText: {
-    color: "white",
-    fontSize: 16,
+  location: {
+    color: "#817AD0",
+    marginLeft: 5,
   },
   statsContainer: {
     flexDirection: "row",
     justifyContent: "space-around",
-    marginTop: hp("3%"),
+    width: "90%",
+    marginTop: 20,
   },
   statItem: {
     alignItems: "center",
@@ -158,29 +188,56 @@ const styles = StyleSheet.create({
     color: "#333",
   },
   statLabel: {
-    color: "gray",
     fontSize: 14,
+    color: "gray",
   },
-  highlightsContainer: {
-    marginTop: hp("3%"),
+  buttonRow: {
     flexDirection: "row",
+    justifyContent: "space-around",
+    width: "80%",
+    marginTop: 15,
   },
-  highlightImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginHorizontal: 5,
+  editButton: {
+    backgroundColor: "#817AD0",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
   },
-  galleryContainer: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-    marginTop: hp("3%"),
+  editButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
   },
-  galleryImage: {
-    width: wp("30%"),
-    height: wp("30%"),
-    borderRadius: 10,
+  addFriendButton: {
+    backgroundColor: "#817AD0",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  addFriendText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  postsContainer: {
+    marginTop: 20,
+    paddingHorizontal: wp("5%"),
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#333",
     marginBottom: 10,
+  },
+  postItem: {
+    width: wp("35%"),
+    height: hp("20%"),
+    borderRadius: 10,
+    overflow: "hidden",
+    marginRight: 10,
+  },
+  postImage: {
+    width: "100%",
+    height: "100%",
   },
 });
