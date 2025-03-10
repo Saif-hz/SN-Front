@@ -1,43 +1,92 @@
 import { Tabs } from "expo-router";
 import React from "react";
-import { Platform } from "react-native";
-
-import { HapticTab } from "@/components/HapticTab";
-import { IconSymbol } from "@/components/ui/IconSymbol";
-import TabBarBackground from "@/components/ui/TabBarBackground";
-import { Colors } from "@/constants/Colors";
-import { useColorScheme } from "@/hooks/useColorScheme";
-import { Provider } from "react-redux";
-import { store } from "../../store/store";
+import { View, StyleSheet, TouchableOpacity } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export default function TabLayout() {
-  const colorScheme = useColorScheme();
-
   return (
-    <Tabs
-      screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? "light"].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-        tabBarBackground: TabBarBackground,
-        tabBarStyle: Platform.select({
-          ios: {
-            // Use a transparent background on iOS to show the blur effect
+    <View style={{ flex: 1 }}>
+      <Tabs
+        screenOptions={{
+          tabBarActiveTintColor: "#817AD0",
+          headerShown: false,
+          tabBarStyle: {
             position: "absolute",
+            backgroundColor: "rgba(255, 255, 255, 0.9)",
+            borderRadius: 30,
+            borderWidth: 0.5,
+            height: 60,
+            borderTopWidth: 0.5,
+            elevation: 0,
+            bottom: 30, // Move up from bottom
+            left: 20,
+            right: 20,
           },
-          default: {},
-        }),
-      }}
-    >
-      <Tabs.Screen
-        name="index"
-        options={{
-          title: "Home",
-          tabBarIcon: ({ color }) => (
-            <IconSymbol size={28} name="house.fill" color={color} />
-          ),
         }}
-      />
-    </Tabs>
+      >
+        <Tabs.Screen
+          name="index"
+          options={{
+            title: "Home",
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "home" : "home-outline"}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="profile"
+          options={{
+            title: "Profile",
+            tabBarIcon: ({ color, focused }) => (
+              <Ionicons
+                name={focused ? "person" : "person-circle-outline"}
+                size={28}
+                color={color}
+              />
+            ),
+          }}
+        />
+      </Tabs>
+
+      {/* Floating Button */}
+      <CustomAddButton onPress={() => console.log("Add button pressed!")} />
+    </View>
   );
 }
+
+/** Floating "+" Button Component */
+const CustomAddButton = ({ onPress }: { onPress: () => void }) => {
+  return (
+    <View style={styles.addButtonContainer}>
+      <TouchableOpacity style={styles.addButton} onPress={onPress}>
+        <Ionicons name="add" size={32} color="white" />
+      </TouchableOpacity>
+    </View>
+  );
+};
+
+const styles = StyleSheet.create({
+  addButtonContainer: {
+    position: "absolute",
+    bottom: 70, // Adjust this to be above the tab bar
+    alignSelf: "center",
+    zIndex: 10, // Ensures it's above other components
+  },
+  addButton: {
+    width: 50,
+    height: 50,
+    backgroundColor: "#7E57C2",
+    borderRadius: 30,
+    justifyContent: "center",
+    alignItems: "center",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 5,
+  },
+});
