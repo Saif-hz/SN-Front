@@ -49,6 +49,15 @@ const Profile = () => {
     setRefreshing(false);
   }, [refetch]);
 
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.clear(); // ✅ Clear user data
+      router.replace("/auth/login"); // ✅ Navigate to Login Page
+    } catch (error) {
+      console.error("Logout failed:", error);
+    }
+  };
+
   // Loading state
   if (isLoading || !username) {
     return (
@@ -165,6 +174,10 @@ const Profile = () => {
             <Text style={styles.addFriendText}>Add Friend</Text>
           </TouchableOpacity>
         </View>
+        {/* ✅ Logout Button Below Profile Actions */}
+        <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+          <Text style={styles.logoutText}>Logout</Text>
+        </TouchableOpacity>
       </View>
 
       {/* Posts Section */}
@@ -333,5 +346,18 @@ const styles = StyleSheet.create({
     color: "#666",
     fontSize: 16,
     marginTop: 10,
+  },
+  logoutButton: {
+    backgroundColor: "#FF6347",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+    marginTop: 15,
+  },
+  logoutText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+    textAlign: "center",
   },
 });
