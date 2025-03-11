@@ -5,7 +5,7 @@ export const apiSlice = createApi({
   reducerPath: "api",
 
   baseQuery: fetchBaseQuery({
-    baseUrl: "http://192.168.90.66:8000/api/auth/",
+    baseUrl: "http://192.168.33.66:8000/api/auth/",
     prepareHeaders: (headers, { getState }) => {
       const state = getState() as RootState; // ✅ Explicitly define the type
       const token = state.auth?.accessToken; // ✅ Now TypeScript understands `auth`
@@ -35,10 +35,7 @@ export const apiSlice = createApi({
       }),
     }),
     getUserProfile: builder.query({
-      query: (username) => ({
-        url: `profile/${username}/`, // ✅ Use username instead of email
-        method: "GET",
-      }),
+      query: (username) => `profile/${username}/`, // ✅ Fetch user by username
     }),
 
     updateProfile: builder.mutation({
@@ -46,8 +43,9 @@ export const apiSlice = createApi({
         url: "profile/update/",
         method: "PUT",
         body: profileData,
+        formData: true, // ✅ Enable multipart/form-data
       }),
-      invalidatesTags: ["UserProfile"], // ✅ Ensures profile refresh
+      invalidatesTags: ["UserProfile"],
     }),
   }),
 });

@@ -19,6 +19,7 @@ import { MaterialIcons } from "@expo/vector-icons";
 import GoogleButton from "../../components/GoogleButton";
 import { LinearGradient } from "expo-linear-gradient"; // ✅ Import for gradient buttons
 import { useRouter } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const Login = () => {
   const router = useRouter();
@@ -45,13 +46,19 @@ const Login = () => {
 
     try {
       const response = await loginUser({ email, password }).unwrap();
-      Alert.alert("Success", "Login successful!");
+
+      // ✅ Store token and username in AsyncStorage
+      await AsyncStorage.setItem("accessToken", response.access);
+      await AsyncStorage.setItem("refreshToken", response.refresh);
+      await AsyncStorage.setItem("username", response.username);
+
+      // ✅ Redirect to profile page using username
       router.replace({
-        pathname: "/auth/profile",
-        params: { email: email, userType: userType },
+        pathname: "/profile",
+        params: { username: response.username },
       });
     } catch (error) {
-      Alert.alert("Error", error?.data?.error || "Login failed. Try again.");
+      Alert.alert("Error", "Invalid credentials.");
     }
   };
 

@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
@@ -9,26 +9,38 @@ import {
   ActivityIndicator,
   RefreshControl,
   FlatList,
+  Pressable,
 } from "react-native";
-import { FontAwesome, MaterialIcons } from "@expo/vector-icons";
-import { useLocalSearchParams } from "expo-router";
+import { FontAwesome } from "@expo/vector-icons";
+import { useGetUserProfileQuery } from "../../store/apiSlice";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { useGetUserProfileQuery } from "../../store/apiSlice";
+import { router } from "expo-router";
 
 const Profile = () => {
-  const { email } = useLocalSearchParams(); // Retrieve user email
+  const [username, setUsername] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  // Fetch user data
+  useEffect(() => {
+    const fetchUsername = async () => {
+      const storedUsername = await AsyncStorage.getItem("username");
+      if (storedUsername) {
+        setUsername(storedUsername);
+      }
+    };
+    fetchUsername();
+  }, []);
+
+  // Fetch user data only if `username` is available
   const {
     data: user,
-    error,
     isLoading,
     refetch,
-  } = useGetUserProfileQuery(email || "default@example.com");
+    error,
+  } = useGetUserProfileQuery(username || "", { skip: !username });
 
   // Handle Refresh
   const onRefresh = useCallback(async () => {
@@ -37,12 +49,23 @@ const Profile = () => {
     setRefreshing(false);
   }, [refetch]);
 
-  // Loading State
-  if (isLoading) {
+  // Loading state
+  if (isLoading || !username) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#817AD0" />
         <Text>Loading profile...</Text>
+      </View>
+    );
+  }
+
+  // Error state
+  if (error || !user) {
+    return (
+      <View style={styles.errorContainer}>
+        <Text style={styles.errorText}>
+          Failed to load profile. Please try again.
+        </Text>
       </View>
     );
   }
@@ -55,14 +78,16 @@ const Profile = () => {
       }
     >
       {/* Cover Photo */}
-      <Image
-        source={
-          user?.coverPhoto
-            ? { uri: user.coverPhoto }
-            : require("../../assets/images/flouu.jpg")
-        }
-        style={styles.coverPhoto}
-      />
+      <View style={styles.coverContainer}>
+        <Image
+          source={
+            user?.coverPhoto
+              ? { uri: user.coverPhoto }
+              : require("../../assets/images/placeholdercover.png")
+          }
+          style={styles.coverPhoto}
+        />
+      </View>
 
       {/* Profile Section */}
       <View style={styles.profileSection}>
@@ -70,18 +95,32 @@ const Profile = () => {
           source={
             user?.profile_picture
               ? { uri: user.profile_picture }
-              : require("../../assets/images/picpro.jpg")
+              : require("../../assets/images/profileplaceholder.jpg")
           }
           style={styles.profilePic}
         />
         <Text style={styles.username}>
           {user?.nom} {user?.prenom}
         </Text>
-        <Text style={styles.role}>{user?.bio || "Music Enthusiast"}</Text>
-        <View style={styles.locationContainer}>
-          <FontAwesome name="map-marker" size={16} color="#817AD0" />
-          <Text style={styles.location}>{user?.location || "Unknown"}</Text>
-        </View>
+
+        {/* User Type Displayed Below Username */}
+        <Text style={styles.userType}>
+          {user?.user_type
+            ? user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1)
+            : "Unknown"}
+        </Text>
+
+        <Text style={styles.bio}>{user?.bio || "Music Enthusiast"}</Text>
+
+        {/* Location */}
+        {user?.location && (
+          <View style={styles.locationContainer}>
+            <FontAwesome name="map-marker" size={16} color="#817AD0" />
+            <Text style={styles.location}>{user?.location}</Text>
+          </View>
+        )}
+
+        {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
             <Text style={styles.statNumber}>{user?.followers || 0}</Text>
@@ -96,10 +135,32 @@ const Profile = () => {
             <Text style={styles.statLabel}>Likes</Text>
           </View>
         </View>
+        <View
+          style={{
+            position: "absolute",
+            height: 35,
+            width: 40,
+            backgroundColor: "#FFFFFF",
+            top: 30,
+            right: 83,
+            zIndex: 999,
+            borderTopEndRadius: 200,
+            borderBottomStartRadius: 200,
+            borderTopStartRadius: 50,
+            borderBottomEndRadius: 50,
+            borderRadius: 1,
+            transform: [{ rotate: "45deg" }],
+          }}
+        />
+
+        {/* Edit & Add Friend Buttons */}
         <View style={styles.buttonRow}>
-          <TouchableOpacity style={styles.editButton}>
+          <Pressable
+            onPress={() => router.push("/profile/EditProfile")}
+            style={styles.editButton}
+          >
             <Text style={styles.editButtonText}>Edit Profile</Text>
-          </TouchableOpacity>
+          </Pressable>
           <TouchableOpacity style={styles.addFriendButton}>
             <Text style={styles.addFriendText}>Add Friend</Text>
           </TouchableOpacity>
@@ -109,17 +170,21 @@ const Profile = () => {
       {/* Posts Section */}
       <View style={styles.postsContainer}>
         <Text style={styles.sectionTitle}>Posts</Text>
-        <FlatList
-          data={user?.posts || []}
-          keyExtractor={(item) => item.id.toString()}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          renderItem={({ item }) => (
-            <View style={styles.postItem}>
-              <Image source={{ uri: item.image }} style={styles.postImage} />
-            </View>
-          )}
-        />
+        {user?.posts?.length > 0 ? (
+          <FlatList
+            data={user.posts}
+            keyExtractor={(item) => item.id.toString()}
+            horizontal={false}
+            showsHorizontalScrollIndicator={false}
+            renderItem={({ item }) => (
+              <View style={styles.postItem}>
+                <Image source={{ uri: item.image }} style={styles.postImage} />
+              </View>
+            )}
+          />
+        ) : (
+          <Text style={styles.noPostsText}>No posts yet.</Text>
+        )}
       </View>
     </ScrollView>
   );
@@ -137,6 +202,17 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 20,
+  },
+  errorText: {
+    color: "red",
+    fontSize: 16,
+    textAlign: "center",
+  },
   coverContainer: {
     width: "100%",
     height: hp("25%"),
@@ -144,11 +220,11 @@ const styles = StyleSheet.create({
   },
   coverPhoto: {
     width: "100%",
-    height: hp("30%"),
+    height: "100%",
   },
   profileSection: {
     alignItems: "center",
-    marginTop: -hp("8%"), // Moves profile picture up
+    marginTop: -hp("8%"),
   },
   profilePic: {
     width: 140,
@@ -163,9 +239,18 @@ const styles = StyleSheet.create({
     color: "#333",
     marginTop: 10,
   },
-  role: {
+  userType: {
     fontSize: 16,
-    color: "gray",
+    color: "#817AD0",
+    fontWeight: "bold",
+    marginTop: 5,
+  },
+  bio: {
+    fontSize: 14,
+    color: "#666",
+    marginTop: hp("1%"),
+    textAlign: "center",
+    paddingHorizontal: wp("10%"),
   },
   locationContainer: {
     flexDirection: "row",
@@ -242,5 +327,11 @@ const styles = StyleSheet.create({
   postImage: {
     width: "100%",
     height: "100%",
+  },
+  noPostsText: {
+    textAlign: "center",
+    color: "#666",
+    fontSize: 16,
+    marginTop: 10,
   },
 });
