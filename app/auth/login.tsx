@@ -17,12 +17,15 @@ import {
 } from "react-native-responsive-screen";
 import { MaterialIcons } from "@expo/vector-icons";
 import GoogleButton from "../../components/GoogleButton";
-import { LinearGradient } from "expo-linear-gradient"; // ✅ Import for gradient buttons
+import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import AsyncStorage from "@react-native-async-storage/async-storage"; // ✅ Import AsyncStorage
+import { useDispatch } from "react-redux";
+import { setCredentials } from "../../store/authSlice"; // ✅ Import action to store token in Redux
 
 const Login = () => {
   const router = useRouter();
+  const dispatch = useDispatch(); // ✅ Redux Dispatch for storing token
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -45,20 +48,51 @@ const Login = () => {
     }
 
     try {
+      // ✅ Call login API
       const response = await loginUser({ email, password }).unwrap();
 
-      // ✅ Store token and username in AsyncStorage
-      await AsyncStorage.setItem("accessToken", response.access);
-      await AsyncStorage.setItem("refreshToken", response.refresh);
-      await AsyncStorage.setItem("username", response.username);
+      // ✅ Extract user data from API response
+      const { access, refresh, username, profile_picture } = response;
 
-      // ✅ Redirect to profile page using username
+      if (!username) {
+        Alert.alert("Error", "Invalid response: Missing username.");
+        return;
+      }
+
+      // ✅ Save Tokens & User Info to AsyncStorage
+      await AsyncStorage.setItem("access_token", access);
+      await AsyncStorage.setItem("refreshToken", refresh);
+      await AsyncStorage.setItem("username", username);
+      await AsyncStorage.setItem(
+        "user",
+        JSON.stringify({ username, profile_picture })
+      );
+
+      // ✅ Save to Redux State
+      dispatch(
+        setCredentials({
+          accessToken: access,
+          refreshToken: refresh,
+          user: { username, profile_picture },
+          username,
+        })
+      );
+
+      // ✅ Alert Success
+      Alert.alert("Success", "Login successful!");
+
+      // ✅ Navigate to Profile Page (Using Username Instead of Email)
       router.replace({
         pathname: "/profile",
-        params: { username: response.username },
+        params: { username },
       });
-    } catch (error) {
-      Alert.alert("Error", "Invalid credentials.");
+    } catch (error: any) {
+      console.error("Login Error:", error);
+
+      // ✅ Handle Different API Error Responses
+      const errorMessage =
+        error?.data?.detail || "Login failed. Please check your credentials.";
+      Alert.alert("Error", errorMessage);
     }
   };
 
@@ -74,7 +108,7 @@ const Login = () => {
           <TextInput
             placeholder="Email"
             style={styles.input}
-            placeholderTextColor="#FFFFFF" // ✅ Increased contrast
+            placeholderTextColor="#FFFFFF"
             value={email}
             onChangeText={setEmail}
             keyboardType="email-address"
@@ -85,7 +119,7 @@ const Login = () => {
             <TextInput
               placeholder="Password"
               style={styles.passwordInput}
-              placeholderTextColor="#FFFFFF" // ✅ Increased contrast
+              placeholderTextColor="#FFFFFF"
               value={password}
               onChangeText={setPassword}
               secureTextEntry={!isPasswordVisible}
@@ -97,7 +131,7 @@ const Login = () => {
               <MaterialIcons
                 name={isPasswordVisible ? "visibility" : "visibility-off"}
                 size={24}
-                color="#FFFFFF" // ✅ Increased contrast
+                color="#FFFFFF"
               />
             </TouchableOpacity>
           </View>
@@ -106,7 +140,7 @@ const Login = () => {
         {/* Login Button with Gradient */}
         <Pressable onPress={handleLogin} disabled={isLoading}>
           <LinearGradient
-            colors={["#FFFFFF", "#817AD0"]} // ✅ Gradient from White to Custom Color
+            colors={["#FFFFFF", "#817AD0"]}
             start={{ x: 0, y: 3 }}
             end={{ x: 0.5, y: 1 }}
             style={[styles.loginButton, { opacity: isLoading ? 0.5 : 1 }]}
@@ -117,10 +151,10 @@ const Login = () => {
           </LinearGradient>
         </Pressable>
 
-        {/* Signup Button with Gradient */}
+        {/* Signup Button */}
         <Pressable onPress={() => router.push("/auth/signup")}>
           <LinearGradient
-            colors={["#FFFFFF", "#817AD0"]} // ✅ Gradient from White to Custom Color
+            colors={["#FFFFFF", "#817AD0"]}
             start={{ x: 1, y: 5 }}
             end={{ x: 0, y: 0.5 }}
             style={styles.signupButton}
@@ -128,6 +162,7 @@ const Login = () => {
             <Text style={styles.signupText}>Signup</Text>
           </LinearGradient>
         </Pressable>
+
         {/* Google Login Button */}
         <GoogleButton
           onPress={() => Alert.alert("Google Signup", "Coming soon!")}
@@ -164,20 +199,20 @@ const styles = StyleSheet.create({
     gap: hp("2%"),
   },
   input: {
-    backgroundColor: "rgba(255, 255, 255, 0.15)", // ✅ Same as Signup
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     width: "100%",
     paddingVertical: hp("1.5%"),
     paddingHorizontal: wp("5%"),
     borderRadius: wp("5%"),
     borderColor: "#F2E3F4",
-    borderWidth: 1.5, // ✅ Consistent border width
+    borderWidth: 1.5,
     color: "white",
     fontSize: 16,
   },
   passwordContainer: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "rgba(255, 255, 255, 0.15)", // ✅ Same as Signup
+    backgroundColor: "rgba(255, 255, 255, 0.15)",
     borderRadius: wp("5%"),
     borderColor: "#F2E3F4",
     borderWidth: 1.5,

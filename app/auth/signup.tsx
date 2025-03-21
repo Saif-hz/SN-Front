@@ -1,3 +1,4 @@
+import React, { useState, useEffect, useRef } from "react";
 import {
   Alert,
   Pressable,
@@ -9,14 +10,18 @@ import {
   Animated,
   TouchableOpacity,
 } from "react-native";
-import React, { useState, useEffect, useRef } from "react";
 import { useRouter } from "expo-router";
 import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 import { MaterialIcons } from "@expo/vector-icons";
+import * as Google from "expo-auth-session/providers/google";
+import * as SecureStore from "expo-secure-store";
 import GoogleButton from "../../components/GoogleButton";
+
+const GOOGLE_CLIENT_ID =
+  "512283829471-bus6l7tli88omj54f8g9rng491t6upe6.apps.googleusercontent.com"; // 🔹 Replace with your actual Client ID
 
 const Signup = () => {
   const [nom, setNom] = useState("");
@@ -32,14 +37,49 @@ const Signup = () => {
   const router = useRouter();
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
-  useEffect(() => {
-    Animated.timing(fadeAnim, {
-      toValue: 1,
-      duration: 800,
-      useNativeDriver: true,
-    }).start();
-  }, []);
+  // 🔹 Google Authentication Setup
+  const [request, response, promptAsync] = Google.useAuthRequest({
+    clientId: GOOGLE_CLIENT_ID,
+  });
 
+  useEffect(() => {
+    if (response?.type === "success") {
+      const { authentication } = response;
+      if (authentication?.accessToken) {
+        handleGoogleSignIn(authentication.accessToken);
+      } else {
+        Alert.alert("Google Sign-In Error", "Failed to retrieve access token.");
+      }
+    }
+  }, [response]);
+
+  // 🔹 Handle Google Sign-In
+  const handleGoogleSignIn = async (accessToken: string) => {
+    try {
+      const userInfoResponse = await fetch(
+        "https://www.googleapis.com/oauth2/v2/userinfo",
+        {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        }
+      );
+      const userInfo = await userInfoResponse.json();
+
+      // 🔹 Store credentials securely
+      await SecureStore.setItemAsync("accessToken", accessToken);
+      await SecureStore.setItemAsync("username", userInfo.name);
+      await SecureStore.setItemAsync("email", userInfo.email);
+
+      // 🔹 Navigate to profile
+      router.replace({
+        pathname: "/profile",
+        params: { username: userInfo.name },
+      });
+    } catch (error) {
+      Alert.alert("Google Sign-In Error", "Failed to sign in with Google.");
+    }
+  };
+
+  // 🔹 Handle Manual Signup
   const handleNextStep = () => {
     if (
       !nom.trim() ||
@@ -57,12 +97,20 @@ const Signup = () => {
       return;
     }
 
-    // ✅ Navigate to Step 2 based on userType
+    // 🔹 Navigate to Next Step
     router.push({
       pathname: "/auth/SignupDetails",
       params: { email, nom, prenom, username, password, userType },
     });
   };
+
+  useEffect(() => {
+    Animated.timing(fadeAnim, {
+      toValue: 1,
+      duration: 800,
+      useNativeDriver: true,
+    }).start();
+  }, []);
 
   return (
     <ImageBackground
@@ -72,7 +120,6 @@ const Signup = () => {
       <Animated.View style={[styles.container, { opacity: fadeAnim }]}>
         <Text style={styles.title}>Create an Account</Text>
 
-        {/* Username */}
         <TextInput
           placeholder="Username"
           style={styles.input}
@@ -81,8 +128,6 @@ const Signup = () => {
           autoCapitalize="none"
           placeholderTextColor="#D1C4E9"
         />
-
-        {/* Nom & Prénom on the Same Line */}
         <View style={styles.rowContainer}>
           <TextInput
             placeholder="Nom"
@@ -101,8 +146,6 @@ const Signup = () => {
             placeholderTextColor="#D1C4E9"
           />
         </View>
-
-        {/* Email */}
         <TextInput
           placeholder="Email"
           style={styles.input}
@@ -113,7 +156,6 @@ const Signup = () => {
           placeholderTextColor="#D1C4E9"
         />
 
-        {/* Password Input */}
         <View style={styles.passwordContainer}>
           <TextInput
             placeholder="Password"
@@ -134,7 +176,6 @@ const Signup = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Confirm Password Input */}
         <View style={styles.passwordContainer}>
           <TextInput
             placeholder="Confirm Password"
@@ -157,7 +198,6 @@ const Signup = () => {
           </TouchableOpacity>
         </View>
 
-        {/* User Type Selection */}
         <View style={styles.userTypeContainer}>
           <Pressable
             style={[
@@ -179,14 +219,9 @@ const Signup = () => {
           </Pressable>
         </View>
 
-        {/* Google Signup & Next Button on Same Line */}
         <View style={styles.buttonRow}>
           <View style={styles.equalButton}>
-            <GoogleButton
-              onPress={() => {
-                /* handle Google signup */
-              }}
-            />
+            <GoogleButton onPress={() => promptAsync()} />
           </View>
           <Pressable style={styles.nextButton} onPress={handleNextStep}>
             <Text style={styles.nextButtonText}>Next</Text>

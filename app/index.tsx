@@ -69,9 +69,9 @@ const Index = () => {
               }}
               title="Get Started"
               onSwipeSuccess={() => {
-                // router.push("auth");
+                //router.push("auth");
                 //router.replace("/(tabs)/home"); // cannot back
-                // router.push("/auth/welcome");
+                //router.push("/auth/welcome");
                 router.replace("/auth/welcome");
               }}
               // thumbIconSize={30}

@@ -57,7 +57,7 @@ const _layout = () => {
           </Text>
         </Pressable>
         <Pressable
-          onPress={() => router.push("../(tabs)/profile")}
+          onPress={() => router.push("/(tabs)/profile")}
           style={{
             backgroundColor: "#817AD0",
             width: wp("80%"),

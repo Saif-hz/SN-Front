@@ -15,7 +15,7 @@ export default function TabLayout() {
             backgroundColor: "rgba(255, 255, 255, 0.9)",
             borderRadius: 30,
             borderWidth: 0.5,
-            height: 60,
+            height: 55,
             borderTopWidth: 0,
             elevation: 0,
             bottom: 30, // Move up from bottom

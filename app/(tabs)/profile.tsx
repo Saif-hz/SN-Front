@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from "react";
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   StyleSheet,
   ScrollView,
@@ -10,6 +9,7 @@ import {
   RefreshControl,
   FlatList,
   Pressable,
+  Image,
 } from "react-native";
 import { FontAwesome } from "@expo/vector-icons";
 import { useGetUserProfileQuery } from "../../store/apiSlice";
@@ -18,31 +18,35 @@ import {
   widthPercentageToDP as wp,
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
-import { router } from "expo-router";
+import { useRouter } from "expo-router";
+import { MoonIcon } from "@/assets/icons/svg";
 
 const Profile = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const fetchUsername = async () => {
       const storedUsername = await AsyncStorage.getItem("username");
       if (storedUsername) {
         setUsername(storedUsername);
+      } else {
+        router.replace("/auth/login");
       }
     };
     fetchUsername();
   }, []);
 
-  // Fetch user data only if `username` is available
   const {
     data: user,
     isLoading,
     refetch,
     error,
-  } = useGetUserProfileQuery(username || "", { skip: !username });
+  } = useGetUserProfileQuery(username || "", {
+    skip: !username,
+  });
 
-  // Handle Refresh
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await refetch();
@@ -50,15 +54,10 @@ const Profile = () => {
   }, [refetch]);
 
   const handleLogout = async () => {
-    try {
-      await AsyncStorage.clear(); // ✅ Clear user data
-      router.replace("/auth/login"); // ✅ Navigate to Login Page
-    } catch (error) {
-      console.error("Logout failed:", error);
-    }
+    await AsyncStorage.clear();
+    router.replace("/auth/login");
   };
 
-  // Loading state
   if (isLoading || !username) {
     return (
       <View style={styles.loadingContainer}>
@@ -68,13 +67,10 @@ const Profile = () => {
     );
   }
 
-  // Error state
   if (error || !user) {
     return (
       <View style={styles.errorContainer}>
-        <Text style={styles.errorText}>
-          Failed to load profile. Please try again.
-        </Text>
+        <Text style={styles.errorText}>Failed to load profile.</Text>
       </View>
     );
   }
@@ -86,83 +82,47 @@ const Profile = () => {
         <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
       }
     >
-      {/* Cover Photo */}
       <View style={styles.coverContainer}>
         <Image
-          source={
-            user?.coverPhoto
-              ? { uri: user.coverPhoto }
-              : require("../../assets/images/placeholdercover.png")
-          }
+          source={require("../../assets/images/souhabi.png")}
           style={styles.coverPhoto}
         />
       </View>
 
-      {/* Profile Section */}
       <View style={styles.profileSection}>
         <Image
-          source={
-            user?.profile_picture
-              ? { uri: user.profile_picture }
-              : require("../../assets/images/profileplaceholder.jpg")
-          }
+          source={require("../../assets/images/mokhles.png")}
+          resizeMode="cover"
           style={styles.profilePic}
         />
         <Text style={styles.username}>
-          {user?.nom} {user?.prenom}
+          {user.nom} {user.prenom}
         </Text>
+        <Text style={styles.userType}>{user.user_type || "User"}</Text>
+        <Text style={styles.bio}>{user.bio || "Music Enthusiast"}</Text>
 
-        {/* User Type Displayed Below Username */}
-        <Text style={styles.userType}>
-          {user?.user_type
-            ? user.user_type.charAt(0).toUpperCase() + user.user_type.slice(1)
-            : "Unknown"}
-        </Text>
-
-        <Text style={styles.bio}>{user?.bio || "Music Enthusiast"}</Text>
-
-        {/* Location */}
-        {user?.location && (
+        {user.location && (
           <View style={styles.locationContainer}>
             <FontAwesome name="map-marker" size={16} color="#817AD0" />
-            <Text style={styles.location}>{user?.location}</Text>
+            <Text style={styles.location}>{user.location}</Text>
           </View>
         )}
 
-        {/* Stats */}
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user?.followers || 0}</Text>
+            <Text style={styles.statNumber}>{user.followers || 0}</Text>
             <Text style={styles.statLabel}>Followers</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user?.following || 0}</Text>
+            <Text style={styles.statNumber}>{user.following || 0}</Text>
             <Text style={styles.statLabel}>Following</Text>
           </View>
           <View style={styles.statItem}>
-            <Text style={styles.statNumber}>{user?.likes || 0}K</Text>
+            <Text style={styles.statNumber}>{user.likes || 0}</Text>
             <Text style={styles.statLabel}>Likes</Text>
           </View>
         </View>
-        <View
-          style={{
-            position: "absolute",
-            height: 35,
-            width: 40,
-            backgroundColor: "#FFFFFF",
-            top: 30,
-            right: 83,
-            zIndex: 999,
-            borderTopEndRadius: 200,
-            borderBottomStartRadius: 200,
-            borderTopStartRadius: 50,
-            borderBottomEndRadius: 50,
-            borderRadius: 1,
-            transform: [{ rotate: "45deg" }],
-          }}
-        />
 
-        {/* Edit & Add Friend Buttons */}
         <View style={styles.buttonRow}>
           <Pressable
             onPress={() => router.push("/profile/EditProfile")}
@@ -170,25 +130,22 @@ const Profile = () => {
           >
             <Text style={styles.editButtonText}>Edit Profile</Text>
           </Pressable>
-          <TouchableOpacity style={styles.addFriendButton}>
-            <Text style={styles.addFriendText}>Add Friend</Text>
+          <TouchableOpacity style={styles.collaborerButton}>
+            <Text style={styles.collaborerText}>+ Collaborer</Text>
           </TouchableOpacity>
         </View>
-        {/* ✅ Logout Button Below Profile Actions */}
+
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
           <Text style={styles.logoutText}>Logout</Text>
         </TouchableOpacity>
       </View>
 
-      {/* Posts Section */}
       <View style={styles.postsContainer}>
         <Text style={styles.sectionTitle}>Posts</Text>
-        {user?.posts?.length > 0 ? (
+        {user.posts?.length > 0 ? (
           <FlatList
             data={user.posts}
             keyExtractor={(item) => item.id.toString()}
-            horizontal={false}
-            showsHorizontalScrollIndicator={false}
             renderItem={({ item }) => (
               <View style={styles.postItem}>
                 <Image source={{ uri: item.image }} style={styles.postImage} />
@@ -204,6 +161,8 @@ const Profile = () => {
 };
 
 export default Profile;
+
+// Reuse your original styles here (unchanged).
 
 const styles = StyleSheet.create({
   container: {
@@ -234,6 +193,8 @@ const styles = StyleSheet.create({
   coverPhoto: {
     width: "100%",
     height: "100%",
+    borderBottomWidth: 1,
+    borderColor: "white",
   },
   profileSection: {
     alignItems: "center",
@@ -305,6 +266,17 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
   editButtonText: {
+    color: "white",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+  collaborerButton: {
+    backgroundColor: "#817AD0",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 20,
+  },
+  collaborerText: {
     color: "white",
     fontSize: 16,
     fontWeight: "bold",

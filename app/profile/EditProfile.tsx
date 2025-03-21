@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -8,6 +7,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  ScrollView,
+  ImageStyle,
 } from "react-native";
 import { useRouter } from "expo-router";
 import * as ImagePicker from "expo-image-picker";
@@ -23,52 +24,45 @@ const EditProfile = () => {
   const [nom, setNom] = useState("");
   const [prenom, setPrenom] = useState("");
   const [bio, setBio] = useState("");
-  const [userType, setUserType] = useState("");
   const [profilePicture, setProfilePicture] = useState<string | null>(null);
 
-  // ✅ Get logged-in user's username from AsyncStorage
   useEffect(() => {
     const fetchUsername = async () => {
       const storedUsername = await AsyncStorage.getItem("username");
       if (storedUsername) {
         setUsername(storedUsername);
+      } else {
+        router.replace("/auth/login");
       }
     };
     fetchUsername();
   }, []);
 
-  // ✅ Fetch user data from API
   const { data: user, isLoading } = useGetUserProfileQuery(username, {
-    skip: !username, // Prevents query from running when username is empty
+    skip: !username,
   });
 
   useEffect(() => {
     if (user) {
-      setNom(user.nom || "");
-      setPrenom(user.prenom || "");
-      setBio(user.bio || "");
-      setUserType(user.user_type || "");
-      setProfilePicture(user.profile_picture || null);
+      setNom(user.nom);
+      setPrenom(user.prenom);
+      setBio(user.bio);
+      setProfilePicture(user.profile_picture);
     }
   }, [user]);
 
-  // ✅ Use update mutation
+  // Ensure your RTK Query mutation is configured to use the PUT method
   const [updateProfile, { isLoading: isUpdating }] = useUpdateProfileMutation();
 
-  // ✅ Handle Image Selection
   const pickImage = async () => {
-    const permissionResult =
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permissionResult.granted) {
-      Alert.alert(
-        "Permission Denied",
-        "You need to enable permission to access photos."
-      );
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (status !== "granted") {
+      Alert.alert("Permission denied", "You must enable gallery permissions.");
       return;
     }
 
     const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ["images"],
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
       allowsEditing: true,
       aspect: [1, 1],
       quality: 0.5,
@@ -79,10 +73,11 @@ const EditProfile = () => {
     }
   };
 
-  // ✅ Handle Profile Update
   const handleSaveChanges = async () => {
-    if (!nom.trim() || !prenom.trim() || !bio.trim()) {
-      Alert.alert("Error", "All fields are required.");
+    const token = await AsyncStorage.getItem("access_token");
+    if (!token) {
+      Alert.alert("Error", "Session expired. Please login again.");
+      router.replace("/auth/login");
       return;
     }
 
@@ -92,15 +87,16 @@ const EditProfile = () => {
     formData.append("prenom", prenom);
     formData.append("bio", bio);
 
-    if (profilePicture && profilePicture !== user.profile_picture) {
+    // Append a new profile picture only if it has changed
+    if (profilePicture && user && profilePicture !== user.profile_picture) {
       const filename = profilePicture.split("/").pop();
-      if (filename) {
-        const match = /\.(\w+)$/.exec(filename);
-        const ext = match ? `image/${match[1]}` : `image`;
-        const response = await fetch(profilePicture);
-        const blob = await response.blob();
-        formData.append("profile_picture", blob, filename);
-      }
+      const match = /\.(\w+)$/.exec(filename || "");
+      const ext = match ? `image/${match[1]}` : "image/jpeg";
+      formData.append("profile_picture", {
+        uri: profilePicture,
+        name: filename,
+        type: ext,
+      } as any);
     }
 
     try {
@@ -108,24 +104,15 @@ const EditProfile = () => {
       Alert.alert("Success", "Profile updated successfully!");
       router.replace("/(tabs)/profile");
     } catch (error) {
-      Alert.alert("Error", "Failed to update profile. Please try again.");
+      console.error("Error updating profile:", error);
+      Alert.alert("Error", "Failed to update profile.");
     }
   };
 
-  if (isLoading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#817AD0" />
-        <Text>Loading profile...</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.title}>Edit Profile</Text>
 
-      {/* Profile Picture Selection */}
       <TouchableOpacity onPress={pickImage}>
         <Image
           source={
@@ -133,79 +120,84 @@ const EditProfile = () => {
               ? { uri: profilePicture }
               : require("../../assets/images/profileplaceholder.jpg")
           }
-          style={styles.profileImage}
+          style={styles.profileImage as ImageStyle}
         />
-        <Text style={styles.changePictureText}>Change Profile Picture</Text>
+        <Text style={styles.changePictureText}>Change Picture</Text>
       </TouchableOpacity>
 
-      <TextInput style={styles.input} value={username} editable={false} />
-
       <TextInput
-        style={styles.input}
         placeholder="Nom"
         value={nom}
         onChangeText={setNom}
+        style={styles.input}
       />
       <TextInput
-        style={styles.input}
         placeholder="Prénom"
         value={prenom}
         onChangeText={setPrenom}
+        style={styles.input}
       />
       <TextInput
-        style={styles.input}
         placeholder="Bio"
         value={bio}
         onChangeText={setBio}
-        multiline
+        style={styles.input}
       />
-      <TextInput style={styles.input} value={userType} editable={false} />
 
       <TouchableOpacity
-        style={styles.button}
         onPress={handleSaveChanges}
         disabled={isUpdating}
+        style={styles.button}
       >
         {isUpdating ? (
-          <ActivityIndicator size="small" color="#FFFFFF" />
+          <ActivityIndicator color="#fff" />
         ) : (
           <Text style={styles.buttonText}>Save Changes</Text>
         )}
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#FFFFFF" },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
-  input: {
-    height: 40,
-    borderColor: "#CCCCCC",
-    borderWidth: 1,
+  container: {
+    flexGrow: 1,
+    padding: 20,
+    backgroundColor: "#fff",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
     marginBottom: 20,
-    paddingHorizontal: 10,
   },
   profileImage: {
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    alignSelf: "center",
-    marginBottom: 10,
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 20,
   },
   changePictureText: {
+    color: "#007BFF",
     textAlign: "center",
-    color: "#817AD0",
+    marginBottom: 20,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: "#ccc",
+    borderRadius: 5,
+    padding: 10,
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#817AD0",
+    backgroundColor: "#007BFF",
     padding: 15,
-    alignItems: "center",
     borderRadius: 5,
+    alignItems: "center",
   },
-  buttonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "bold" },
-  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });
 
 export default EditProfile;
