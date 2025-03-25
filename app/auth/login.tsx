@@ -23,6 +23,8 @@ import AsyncStorage from "@react-native-async-storage/async-storage"; // ✅ Imp
 import { useDispatch } from "react-redux";
 import { setCredentials } from "../../store/authSlice"; // ✅ Import action to store token in Redux
 
+const API_BASE_URL = "http://192.168.1.23:8000";
+
 const Login = () => {
   const router = useRouter();
   const dispatch = useDispatch(); // ✅ Redux Dispatch for storing token
@@ -48,32 +50,41 @@ const Login = () => {
     }
 
     try {
+      console.log("Login Request:", {
+        url: `${API_BASE_URL}/api/auth/login/`,
+        body: { email }
+      });
+      
       // ✅ Call login API
       const response = await loginUser({ email, password }).unwrap();
+      console.log("Login Response:", response);
 
       // ✅ Extract user data from API response
-      const { access, refresh, username, profile_picture } = response;
+      const { access, refresh, username, profile_picture, user_type } = response;
 
-      if (!username) {
-        Alert.alert("Error", "Invalid response: Missing username.");
+      if (!username || !access || !refresh) {
+        console.error("Login Error: Missing required data in response");
+        Alert.alert("Error", "Invalid response: Missing required data.");
         return;
       }
 
+      // ✅ Clear any existing tokens first
+      await AsyncStorage.multiRemove(["accessToken", "refreshToken", "username", "user"]);
+
       // ✅ Save Tokens & User Info to AsyncStorage
-      await AsyncStorage.setItem("access_token", access);
-      await AsyncStorage.setItem("refreshToken", refresh);
-      await AsyncStorage.setItem("username", username);
-      await AsyncStorage.setItem(
-        "user",
-        JSON.stringify({ username, profile_picture })
-      );
+      await AsyncStorage.multiSet([
+        ["accessToken", access],
+        ["refreshToken", refresh],
+        ["username", username],
+        ["user", JSON.stringify({ username, profile_picture, user_type })]
+      ]);
 
       // ✅ Save to Redux State
       dispatch(
         setCredentials({
           accessToken: access,
           refreshToken: refresh,
-          user: { username, profile_picture },
+          user: { username, profile_picture, user_type },
           username,
         })
       );
@@ -87,11 +98,18 @@ const Login = () => {
         params: { username },
       });
     } catch (error: any) {
-      console.error("Login Error:", error);
+      console.error("Login Error Full:", {
+        error,
+        data: error?.data,
+        status: error?.status,
+        message: error?.message,
+      });
 
       // ✅ Handle Different API Error Responses
-      const errorMessage =
-        error?.data?.detail || "Login failed. Please check your credentials.";
+      const errorMessage = error?.data?.error || 
+                          error?.data?.detail || 
+                          error?.message ||
+                          "Login failed. Please check your credentials.";
       Alert.alert("Error", errorMessage);
     }
   };

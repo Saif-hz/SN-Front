@@ -17,6 +17,8 @@ import {
   heightPercentageToDP as hp,
 } from "react-native-responsive-screen";
 
+const API_BASE_URL = "http://192.168.1.23:8000";
+
 const SignupDetails = () => {
   const { email, nom, prenom, username, password, userType } =
     useLocalSearchParams();
@@ -53,28 +55,49 @@ const SignupDetails = () => {
     }
 
     const newUser = {
-      email,
-      nom,
-      prenom,
-      username,
-      password,
-      user_type: userType,
-      genres: genres ? genres.split(",").map((g) => g.trim()) : [],
-      talents:
-        userType === "artist" ? talents.split(",").map((t) => t.trim()) : [],
-      studio_name: userType === "producer" ? studioName.trim() : null,
+      email: email.toString(),
+      nom: nom.toString(),
+      prenom: prenom.toString(),
+      username: username.toString(),
+      password: password.toString(),
+      user_type: userType.toString(),
+      genres: genres ? genres.trim() : "",
+      talents: userType === "artist" ? talents.trim() : "",
+      studio_name: userType === "producer" ? studioName.trim() : "",
     };
 
     try {
-      console.log("Sending signup request:", newUser);
+      console.log("Signup Request:", {
+        url: `${API_BASE_URL}/api/auth/signup/`,
+        body: newUser,
+      });
+      
       const response = await signupUser(newUser).unwrap();
-      console.log("Signup Success:", response);
-
-      Alert.alert("Success", `${userType} account created successfully!`);
-      router.replace("/auth/login");
+      console.log("Signup Response:", response);
+      
+      Alert.alert(
+        "Success", 
+        `${userType} account created successfully!`,
+        [
+          {
+            text: "OK",
+            onPress: () => router.replace("/auth/login")
+          }
+        ]
+      );
     } catch (error: any) {
-      console.error("Signup Error:", error);
-      Alert.alert("Error", error?.data?.error || "Signup failed. Try again.");
+      console.error("Signup Error Full:", {
+        error,
+        data: error?.data,
+        status: error?.status,
+        message: error?.message,
+      });
+      
+      const errorMessage = error?.data?.error || 
+                          error?.data?.detail || 
+                          error?.message ||
+                          "Signup failed. Please try again.";
+      Alert.alert("Error", errorMessage);
     }
   };
 
